@@ -71,25 +71,25 @@ def convert_metadata_json(metadata):
     return dumps(readyData)
 
 
-def prepare_album_and_url():
-    metadata = get_metadata()
+def format_album_title():
+    albumTitleFormatted = ''
+    with open(currentSongFile, 'r') as current:
+        albumTitleFormatted = load(current)['album'].lower()
 
-    albumTitle = ''
-    for line in metadata.split('\n'):
-        if 'album' in line:
-            albumTitle = line.split('|')[1].lower()
-    removeChars = '[^ a-zA-Z0-9]'
-    albumTitle = sub(removeChars, '', albumTitle)
-    albumTitle = albumTitle.replace(' ', '_')
+    albumTitleFormatted = sub('[^ a-zA-Z0-9]', '', albumTitleFormatted)
+    albumTitleFormatted = albumTitleFormatted.replace(' ', '_')
+
+    return albumTitleFormatted
 
 
 def download_album_cover():
-    data = prepare_album_and_url()
-    albumTitle = data.albumTitle
-    coverUrl = data.coverUrl
+    albumTitleFormatted = format_album_title()
+    coverUrl = ''
 
-    print(coverUrl, albumTitle)
-    # urlretrieve(coverUrl, '')
+    with open(currentSongFile, 'r') as current:
+        coverUrl = load(current)['coverUrl'].lower()
+
+    urlretrieve(coverUrl, albumTitleFormatted + '.png')
 
 
 def write_song_to_file():
@@ -129,10 +129,10 @@ def compare_songs():
 
 def main():
     # convert_metadata_json()
-    # download_album_cover()
+    download_album_cover()
     # get_metadata()
     # compare_songs()
-    write_song_to_file()
+    # write_song_to_file()
 
 
 if __name__ == '__main__':
