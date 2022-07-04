@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 
 # constants
-DEST="org.mpris.MediaPlayer2.spotify"
-PATH="/org/mpris/MediaPlayer2"
-MEMB="org.mpris.MediaPlayer2.Player"
+_DEST="org.mpris.MediaPlayer2.spotify"
+_PATH="/org/mpris/MediaPlayer2"
+_MEMB="org.mpris.MediaPlayer2.Player"
 
 shopt -s expand_aliases
 
 # get current song's metadata
 function getMetadata {
-  # prints the currently playing track in a parseable format.
+  # prints the currently playing track in a parseable format
 
   dbus-send \
   --print-reply \
-  --dest=$DEST \
-  $PATH \
+  --dest=$_DEST \
+  $_PATH \
   org.freedesktop.DBus.Properties.Get \
-  string:"$MEMB" string:'Metadata' \
+  string:"$_MEMB" string:'Metadata' \
   | grep -Ev "^method" \
   | grep -Eo '("(.*)")|(\b[0-9][a-zA-Z0-9.]*\b)' \
   | sed -E '2~2 a|' \
