@@ -71,12 +71,16 @@ def convert_metadata_json(metadata):
     return dumps(readyData)
 
 
+# format the album title to give it as a name to the downloaded album cover
 def format_album_title():
     albumTitleFormatted = ''
     with open(currentSongFile, 'r') as current:
+        # get album title from current song file and make it lowercase
         albumTitleFormatted = load(current)['album'].lower()
 
+    # remove all characters that ARE NOT letters and numbers
     albumTitleFormatted = sub('[^ a-zA-Z0-9]', '', albumTitleFormatted)
+    # replace spaces for underscores
     albumTitleFormatted = albumTitleFormatted.replace(' ', '_')
 
     return albumTitleFormatted
@@ -89,10 +93,19 @@ def download_album_cover():
     with open(currentSongFile, 'r') as current:
         coverUrl = load(current)['coverUrl'].lower()
 
+    # check if the album cover was previously downloaded
+    if exists(join(cacheDir, albumTitleFormatted + '.png')):
+        print('Album cover already saved, no need to download it again.')
+        return
+
+    # download the album cover and name it to the formatted album title
     urlretrieve(coverUrl, albumTitleFormatted + '.png')
+    print(f'Downloaded {albumTitleFormatted}.png')
 
 
+# get currently playing song's metadata and save it to the file
 def write_song_to_file():
+    # retrieve currently playing song's metadata
     newSong = get_metadata()
     # read last saved and current song files
     with open(lastSavedSongFile, 'w') as last, open(currentSongFile, 'r+') as current:
@@ -106,31 +119,30 @@ def write_song_to_file():
         current.write(newSong)
         current.truncate()
 
+
 # check if current song is in the same album as last saved song
-
-
 def compare_songs():
     print("Comparing last saved song with current")
     with open(lastSavedSongFile, 'r') as last, open(currentSongFile, 'r') as current:
 
         # read both files
-        dataLast = load(last)
-        dataCurrent = load(current)
-        if dataLast['coverUrl'] == dataCurrent['coverUrl']:
+        coverUrlLast = load(last)['coverUrl']
+        coverUrlCurrent = load(current)['coverUrl']
+        if coverUrlLast == coverUrlCurrent:
             # if album cover url matches, assume it's in the same album
             print("Still in the same album as last song")
-            pass
+            return
         else:
             # if not, download the album cover
             print("Downloading album cover...")
-            # TODO: download album cover
+            download_album_cover()
             pass
 
 
 def main():
     # convert_metadata_json()
-    download_album_cover()
-    # get_metadata()
+    # download_album_cover()
+    get_metadata()
     # compare_songs()
     # write_song_to_file()
 
