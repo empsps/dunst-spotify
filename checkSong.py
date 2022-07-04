@@ -10,6 +10,7 @@ from urllib.request import urlretrieve
 
 current_dir = '/home/sph/Dev/dunspotify'
 cache_dir = '/home/sph/.local/share/dunspotify'
+covers_dir = join(cache_dir, 'covers')
 last_saved_song_file = join(cache_dir, 'lastSavedSong.json')
 current_song_file = join(cache_dir, 'currentSong.json')
 
@@ -26,9 +27,12 @@ json_song_structure = dumps(song_structure)
 
 # create files if they don't exist
 def create_files_dirs():
-    if not exists(cache_dir):
-        print('Creating dirs')
-        makedirs(cache_dir)
+    dirs = [cache_dir, covers_dir]
+
+    for dir in dirs:
+        if not exists(dir):
+            print('Creating dirs')
+            makedirs(dir)
 
     files = [last_saved_song_file, current_song_file]
 
@@ -93,12 +97,12 @@ def download_album_cover():
         cover_url = load(current)['coverUrl'].lower()
 
     # check if the album cover was previously downloaded
-    if exists(join(cache_dir, album_title_formatted + '.png')):
+    if exists(join(covers_dir, album_title_formatted + '.png')):
         print('Album cover already saved, no need to download it again.')
         return
 
     # download the album cover and name it to the formatted album title
-    urlretrieve(cover_url, join(cache_dir, album_title_formatted) + '.png')
+    urlretrieve(cover_url, join(covers_dir, album_title_formatted) + '.png')
     print(f'Downloaded {album_title_formatted}.png')
 
 
