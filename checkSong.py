@@ -7,11 +7,11 @@ from subprocess import check_output
 from urllib.request import urlretrieve
 from re import sub
 
-currentDir = "/home/sph/Dev/dunspotify"
+currentDir = '/home/sph/Dev/dunspotify'
 # cacheDir = "/home/sph/.local/cache/dunspotify"
-cacheDir = "/home/sph/Dev/dunspotify"
-lastSavedSongFile = join(cacheDir, "lastSavedSong.json")
-currentSongFile = join(cacheDir, "currentSong.json")
+cacheDir = '/home/sph/Dev/dunspotify'
+lastSavedSongFile = join(cacheDir, 'lastSavedSong.json')
+currentSongFile = join(cacheDir, 'currentSong.json')
 
 # empty json structure to populate files
 songStructure = {
@@ -27,21 +27,20 @@ jsonStructure = dumps(songStructure)
 # create files if they don't exist
 def create_files_dirs():
     if not exists(cacheDir):
-        print("Creating dirs")
+        print('Creating dirs')
         makedirs(cacheDir)
 
-    if not exists(lastSavedSongFile):
-        with open(lastSavedSongFile, 'w') as last:
-            last.write(jsonStructure)
+    files = [lastSavedSongFile, currentSongFile]
 
-    if not exists(currentSongFile):
-        with open(currentSongFile, 'w') as current:
-            current.write(jsonStructure)
+    for file in files:
+        if not exists(file):
+            with open(file, 'w') as file:
+                file.write(jsonStructure)
 
 
 def get_metadata():
     metadata = check_output(
-        ["./spot_metadata"], universal_newlines=True)
+        ['./spot_metadata'], universal_newlines=True)
     return convert_metadata_json(metadata)
 
 
@@ -122,7 +121,7 @@ def write_song_to_file():
 
 # check if current song is in the same album as last saved song
 def compare_songs():
-    print("Comparing last saved song with current")
+    print('Comparing last saved song with current')
     with open(lastSavedSongFile, 'r') as last, open(currentSongFile, 'r') as current:
 
         # read both files
@@ -130,20 +129,21 @@ def compare_songs():
         coverUrlCurrent = load(current)['coverUrl']
         if coverUrlLast == coverUrlCurrent:
             # if album cover url matches, assume it's in the same album
-            print("Still in the same album as last song")
+            print('Still in the same album as last song')
             return
         else:
             # if not, download the album cover
-            print("Downloading album cover...")
+            print('Downloading album cover...')
             download_album_cover()
             pass
 
 
 def main():
+    # create_files_dirs()
     # convert_metadata_json()
     # download_album_cover()
-    get_metadata()
-    # compare_songs()
+    # get_metadata()
+    compare_songs()
     # write_song_to_file()
 
 
