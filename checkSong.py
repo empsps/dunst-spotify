@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-import json
-from os import path, makedirs
-import subprocess
+from json import dumps, load, dump
+from os import makedirs
+from os.path import exists, join
+from subprocess import check_output
 from urllib.request import urlretrieve
-import re
+from re import sub
 
 currentDir = "/home/sph/Dev/dunspotify"
 # cacheDir = "/home/sph/.local/cache/dunspotify"
 cacheDir = "/home/sph/Dev/dunspotify"
-lastSavedSongFile = path.join(cacheDir, "lastSavedSong.json")
-currentSongFile = path.join(cacheDir, "currentSong.json")
+lastSavedSongFile = join(cacheDir, "lastSavedSong.json")
+currentSongFile = join(cacheDir, "currentSong.json")
 
 # empty json structure to populate files
 songStructure = {
@@ -20,26 +21,26 @@ songStructure = {
     'albumTitle': ''
 }
 
-jsonStructure = json.dumps(songStructure)
+jsonStructure = dumps(songStructure)
 
 
 # create files if they don't exist
 def create_files_dirs():
-    if not path.exists(cacheDir):
+    if not exists(cacheDir):
         print("Creating dirs")
         makedirs(cacheDir)
 
-    if not path.exists(lastSavedSongFile):
+    if not exists(lastSavedSongFile):
         with open(lastSavedSongFile, 'w') as last:
             last.write(jsonStructure)
 
-    if not path.exists(currentSongFile):
+    if not exists(currentSongFile):
         with open(currentSongFile, 'w') as current:
             current.write(jsonStructure)
 
 
 def get_metadata():
-    metadata = subprocess.check_output(
+    metadata = check_output(
         ["./spot_metadata"], universal_newlines=True)
     return convert_metadata_json(metadata)
 
@@ -67,7 +68,7 @@ def convert_metadata_json(metadata):
         'artist': artist
     }
 
-    return json.dumps(readyData)
+    return dumps(readyData)
 
 
 def prepare_album_and_url():
@@ -78,7 +79,7 @@ def prepare_album_and_url():
         if 'album' in line:
             albumTitle = line.split('|')[1].lower()
     removeChars = '[^ a-zA-Z0-9]'
-    albumTitle = re.sub(removeChars, '', albumTitle)
+    albumTitle = sub(removeChars, '', albumTitle)
     albumTitle = albumTitle.replace(' ', '_')
 
 
@@ -97,8 +98,8 @@ def write_song_to_file():
     with open(lastSavedSongFile, 'w') as last, open(currentSongFile, 'r+') as current:
 
         # copy current file contents to last saved
-        currentData = json.load(current)
-        json.dump(currentData, last)
+        currentData = load(current)
+        dump(currentData, last)
 
         # write real current song to current file
         current.seek(0)
@@ -113,8 +114,8 @@ def compare_songs():
     with open(lastSavedSongFile, 'r') as last, open(currentSongFile, 'r') as current:
 
         # read both files
-        dataLast = json.load(last)
-        dataCurrent = json.load(current)
+        dataLast = load(last)
+        dataCurrent = load(current)
         if dataLast['coverUrl'] == dataCurrent['coverUrl']:
             # if album cover url matches, assume it's in the same album
             print("Still in the same album as last song")
