@@ -4,15 +4,16 @@ from re import sub
 from os import makedirs
 from time import sleep, time
 from os.path import exists, join
-from json import dumps, load, dump
 from subprocess import check_output
 from urllib.request import urlretrieve
+from json import dumps, load, dump, loads
 
 current_dir = '/home/sph/Dev/dunspotify'
 cache_dir = '/home/sph/.local/share/dunspotify'
 covers_dir = join(cache_dir, 'covers')
 last_saved_song_file = join(cache_dir, 'lastSavedSong.json')
 current_song_file = join(cache_dir, 'currentSong.json')
+current_song_txt = join(cache_dir, 'currentSong')
 
 # empty json structure to populate files
 song_structure = {
@@ -34,7 +35,7 @@ def create_files_dirs():
             print('Creating dirs')
             makedirs(dir)
 
-    files = [last_saved_song_file, current_song_file]
+    files = [last_saved_song_file, current_song_file, current_song_txt]
 
     for file in files:
         if not exists(file):
@@ -65,7 +66,6 @@ def convert_metadata_json(metadata):
             artist = line.split('|')[1]
     
     album_title_formatted = format_album_title(album)
-    print(album_title_formatted)
 
     readyData = {
         'coverUrl': cover_url,
@@ -133,6 +133,11 @@ def write_song_to_file():
         current.seek(0)
         current.write(new_song)
         current.truncate()
+    
+    with open(current_song_txt, 'w') as txt:
+        json_song = loads(new_song)
+        for entry in json_song:
+            txt.write(f'{entry}|{json_song[entry]}\n')
 
     compare_songs()
 
