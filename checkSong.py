@@ -9,7 +9,7 @@ from urllib.request import urlretrieve
 from json import dumps, load, dump, loads
 from cv2 import INTER_AREA, resize, imread, imwrite
 
-current_dir = '/home/sph/Dev/dunspotify'
+working_dir = '/home/sph/Dev/dunspotify'
 cache_dir = '/home/sph/.local/share/dunspotify'
 covers_dir = join(cache_dir, 'covers')
 last_saved_song_file = join(cache_dir, 'lastSavedSong.json')
@@ -46,7 +46,7 @@ def create_files_dirs():
 
 def get_metadata():
     metadata = check_output(
-        ['./spot_metadata'], universal_newlines=True)
+        [join(working_dir, 'spot_metadata')], universal_newlines=True)
     return convert_metadata_json(metadata)
 
 
