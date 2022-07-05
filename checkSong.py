@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import psutil
 from re import sub
 from os import makedirs
 from time import sleep, time
@@ -164,11 +165,26 @@ def compare_songs():
             download_album_cover()
 
 
+def check_spotify_running():
+    # Iterate over the all the running process
+    for proc in psutil.process_iter():
+        try:
+            # Check if process name contains the given name string.
+            if 'spotify' in proc.name().lower():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return False
+
+
 def song_check_loop():
     start_time = time()
     while True:
-        write_song_to_file()
         sleep(2.0 - ((time() - start_time) % 2.0))
+        if check_spotify_running():
+            write_song_to_file()
+        else:
+            print("Spotify not running")
 
 
 def main():
