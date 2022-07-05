@@ -7,6 +7,7 @@ from os.path import exists, join
 from subprocess import check_output
 from urllib.request import urlretrieve
 from json import dumps, load, dump, loads
+from cv2 import resize, imread, INTER_CUBIC, imwrite
 
 current_dir = '/home/sph/Dev/dunspotify'
 cache_dir = '/home/sph/.local/share/dunspotify'
@@ -64,7 +65,7 @@ def convert_metadata_json(metadata):
             album = line.split('|')[1]
         if 'artist' in line:
             artist = line.split('|')[1]
-    
+
     album_title_formatted = format_album_title(album)
 
     readyData = {
@@ -74,8 +75,6 @@ def convert_metadata_json(metadata):
         'albumFormatted': album_title_formatted,
         'artist': artist
     }
-
-   
 
     return dumps(readyData)
 
@@ -114,7 +113,11 @@ def download_album_cover():
         return
 
     # download the album cover and name it to the formatted album title
-    urlretrieve(cover_url, join(covers_dir, album_title_formatted) + '.png')
+    cover_img = join(covers_dir, album_title_formatted) + '.png'
+    urlretrieve(cover_url, cover_img)
+    resized_image = resize(imread(cover_img), dsize=(
+        50, 50), interpolation=INTER_CUBIC)
+    imwrite(cover_img, resized_image)
     print(f'Downloaded {album_title_formatted}.png')
 
 
@@ -133,7 +136,7 @@ def write_song_to_file():
         current.seek(0)
         current.write(new_song)
         current.truncate()
-    
+
     with open(current_song_txt, 'w') as txt:
         json_song = loads(new_song)
         for entry in json_song:
