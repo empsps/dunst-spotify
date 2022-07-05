@@ -7,85 +7,95 @@ get_volume() {
 }
 
 # Get current song info
-JSON="$HOME/.local/share/dunspotify/currentSong.json"
+DATA="$HOME/.local/share/dunspotify/currentSong"
 COVERS_DIR="$HOME/.local/share/dunspotify/covers"
 
 get_song_info() {
-	artist=`jq -r .artist $JSON`
-  songTitle=`jq -r .songTitle $JSON`
-  albumFormatted=`jq -r .albumFormatted $JSON`
+	artist="$(cat $DATA | grep "artist" | cut -d'|' -f2)"
+  songTitle="$(cat $DATA | grep "songTitle" | cut -d'|' -f2)"
+  albumFormatted="$(cat $DATA | grep "albumFormatted" | cut -d'|' -f2)"
   icon="$COVERS_DIR/$albumFormatted.png"
 }
 
 # Check if spotify is running, if not, don't show song information
 is_running=$(pgrep -x spotify >/dev/null && echo "Process found" || echo "Process not found")
 
+# Send notification
+send_notify() {
+	if [[ "$1" == "mute" ]]; then
+		status=`pactl get-sink-mute @DEFAULT_SINK@`
+		if [[ "${status}" = 'Mute: no' ]]; then
+			muteStatus="Unmuted"
+		else
+			muteStatus="Muted"
+		fi
+		get_song_info && dunstify -u normal -i $icon --replace=69 "$songTitle" "$artist\nVolume : $muteStatus"
+		return 0
+	fi
+
+	get_song_info && dunstify -u normal -i $icon --replace=69 "$songTitle" "$artist\nVolume : $(get_volume)"
+}
+
+# Send notification no song
+send_notify_w() {
+	if [[ "$1" == "mute" ]]; then
+		status=`pactl get-sink-mute @DEFAULT_SINK@`
+		if [[ "${status}" = 'Mute: no' ]]; then
+			get_song_info && dunstify -u low --replace=69 "Volume : Unmuted"
+		else
+			get_song_info && dunstify -u low --replace=69 "Volume : Muted"
+		fi
+		return 0
+	fi
+
+	get_song_info && dunstify -u low --replace=69 "Volume : $(get_volume)"
+}
+
 # Increase Volume
 inc_volume() {
-	pactl set-sink-volume @DEFAULT_SINK@ +3% && get_song_info && dunstify -u low -i $icon --replace=69 "$songTitle" "$artist\nVolume : $(get_volume)"
+	pactl set-sink-volume @DEFAULT_SINK@ +3% && send_notify
 }
 
 # Decrease Volume
 dec_volume() {
-	pactl set-sink-volume @DEFAULT_SINK@ -3% && get_song_info && dunstify -u low -i $icon --replace=69 "$songTitle" "$artist\nVolume : $(get_volume)"
+	pactl set-sink-volume @DEFAULT_SINK@ -3% && send_notify
 }
 
 # Toggle Mute
 toggle_mute() {
-	status=`pactl get-sink-mute @DEFAULT_SINK@`
-
-	if [[ "${status}" = 'Mute: no' ]]; then
-		pactl set-sink-mute @DEFAULT_SINK@ toggle && get_song_info && dunstify -u low -i $icon --replace=69 "$songTitle" "$artist\nVolume : Mute"
-	else
-		pactl set-sink-mute @DEFAULT_SINK@ toggle && get_song_info && dunstify -u low -i $icon --replace=69 "$songTitle" "$artist\nVolume : Unmute"
-	fi
+	pactl set-sink-mute @DEFAULT_SINK@ toggle && send_notify "mute"
 }
 
 # Increase Volume without song information
 inc_volume_w() {
-	pactl set-sink-volume @DEFAULT_SINK@ +3% && get_song_info && dunstify -u low --replace=69 "Volume : $(get_volume)"
+	pactl set-sink-volume @DEFAULT_SINK@ +3% && send_notify_w
 }
 
 # Decrease Volume without song information
 dec_volume_w() {
-	pactl set-sink-volume @DEFAULT_SINK@ -3% && get_song_info && dunstify -u low --replace=69 "Volume : $(get_volume)"
+	pactl set-sink-volume @DEFAULT_SINK@ -3% && send_notify_w
 }
 
 # Toggle Mute without song information
 toggle_mute_w() {
-	status=`pactl get-sink-mute @DEFAULT_SINK@`
-
-	if [[ "${status}" = 'Mute: no' ]]; then
-		pactl set-sink-mute @DEFAULT_SINK@ toggle && get_song_info && dunstify -u low --replace=69 "Volume : Mute"
-	else
-		pactl set-sink-mute @DEFAULT_SINK@ toggle && get_song_info && dunstify -u low --replace=69 "Volume : Unmute"
-	fi
+	pactl set-sink-mute @DEFAULT_SINK@ toggle && send_notify_w "mute"
 }
 
 # Execute accordingly
 if [[ "$is_running" == "Process found" ]]; then
-	if [[ "$1" == "--get" ]]; then
-		get_volume
-	elif [[ "$1" == "--inc" ]]; then
+	if [[ "$1" == "--inc" ]]; then
 		inc_volume
 	elif [[ "$1" == "--dec" ]]; then
 		dec_volume
-	elif [[ "$1" == "--toggle" ]]; then
-		toggle_mute
 	else
-		get_volume
+		toggle_mute
 	fi
 else
-	if [[ "$1" == "--get" ]]; then
-		get_volume
-	elif [[ "$1" == "--inc" ]]; then
+	if [[ "$1" == "--inc" ]]; then
 		inc_volume_w
 	elif [[ "$1" == "--dec" ]]; then
 		dec_volume_w
-	elif [[ "$1" == "--toggle" ]]; then
-		toggle_mute_w
 	else
-		get_volume
+		toggle_mute_w
 	fi
 fi
-
