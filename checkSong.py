@@ -7,7 +7,7 @@ from os.path import exists, join
 from subprocess import check_output
 from urllib.request import urlretrieve
 from json import dumps, load, dump, loads
-from cv2 import resize, imread, INTER_CUBIC, imwrite
+from cv2 import INTER_AREA, resize, imread, imwrite
 
 current_dir = '/home/sph/Dev/dunspotify'
 cache_dir = '/home/sph/.local/share/dunspotify'
@@ -116,7 +116,7 @@ def download_album_cover():
     cover_img = join(covers_dir, album_title_formatted) + '.png'
     urlretrieve(cover_url, cover_img)
     resized_image = resize(imread(cover_img), dsize=(
-        50, 50), interpolation=INTER_CUBIC)
+        50, 50), interpolation=INTER_AREA)
     imwrite(cover_img, resized_image)
     print(f'Downloaded {album_title_formatted}.png')
 
@@ -167,7 +167,7 @@ def song_check_loop():
     start_time = time()
     while True:
         write_song_to_file()
-        sleep(3.0 - ((time() - start_time) % 3.0))
+        sleep(2.5 - ((time() - start_time) % 2.5))
 
 
 def main():
