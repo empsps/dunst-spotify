@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+# Get Volume
+get_volume() {
+	volume=`pactl get-sink-volume @DEFAULT_SINK@ | tail -n 2 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,' | head -n 1`
+	echo "$volume%"
+}
+
+# Get current song info
+JSON="$HOME/.local/share/dunspotify/currentSong.json"
+COVERS_DIR="$HOME/.local/share/dunspotify/covers"
+
+get_song_info() {
+	artist=`jq -r .artist $JSON`
+  songTitle=`jq -r .songTitle $JSON`
+  albumFormatted=`jq -r .albumFormatted $JSON`
+  icon="$COVERS_DIR/$albumFormatted.png"
+}
+
+# Check if spotify is running, if not, don't show song information
+is_running=$(pgrep -x spotify >/dev/null && echo "Process found" || echo "Process not found")
+
+# Increase Volume
+inc_volume() {
+	pactl set-sink-volume @DEFAULT_SINK@ +3% && get_song_info && dunstify -u low -i $icon --replace=69 "$songTitle" "$artist\nVolume : $(get_volume)"
+}
+
+# Decrease Volume
+dec_volume() {
+	pactl set-sink-volume @DEFAULT_SINK@ -3% && get_song_info && dunstify -u low -i $icon --replace=69 "$songTitle" "$artist\nVolume : $(get_volume)"
+}
+
+# Toggle Mute
+toggle_mute() {
+	status=`pactl get-sink-mute @DEFAULT_SINK@`
+
+	if [[ "${status}" = 'Mute: no' ]]; then
+		pactl set-sink-mute @DEFAULT_SINK@ toggle && get_song_info && dunstify -u low -i $icon --replace=69 "$songTitle" "$artist\nVolume : Mute"
+	else
+		pactl set-sink-mute @DEFAULT_SINK@ toggle && get_song_info && dunstify -u low -i $icon --replace=69 "$songTitle" "$artist\nVolume : Unmute"
+	fi
+}
+
+# Increase Volume without song information
+inc_volume_w() {
+	pactl set-sink-volume @DEFAULT_SINK@ +3% && get_song_info && dunstify -u low --replace=69 "Volume : $(get_volume)"
+}
+
+# Decrease Volume without song information
+dec_volume_w() {
+	pactl set-sink-volume @DEFAULT_SINK@ -3% && get_song_info && dunstify -u low --replace=69 "Volume : $(get_volume)"
+}
+
+# Toggle Mute without song information
+toggle_mute_w() {
+	status=`pactl get-sink-mute @DEFAULT_SINK@`
+
+	if [[ "${status}" = 'Mute: no' ]]; then
+		pactl set-sink-mute @DEFAULT_SINK@ toggle && get_song_info && dunstify -u low --replace=69 "Volume : Mute"
+	else
+		pactl set-sink-mute @DEFAULT_SINK@ toggle && get_song_info && dunstify -u low --replace=69 "Volume : Unmute"
+	fi
+}
+
+# Execute accordingly
+if [[ "$is_running" == "Process found" ]]; then
+	if [[ "$1" == "--get" ]]; then
+		get_volume
+	elif [[ "$1" == "--inc" ]]; then
+		inc_volume
+	elif [[ "$1" == "--dec" ]]; then
+		dec_volume
+	elif [[ "$1" == "--toggle" ]]; then
+		toggle_mute
+	else
+		get_volume
+	fi
+else
+	if [[ "$1" == "--get" ]]; then
+		get_volume
+	elif [[ "$1" == "--inc" ]]; then
+		inc_volume_w
+	elif [[ "$1" == "--dec" ]]; then
+		dec_volume_w
+	elif [[ "$1" == "--toggle" ]]; then
+		toggle_mute_w
+	else
+		get_volume
+	fi
+fi
+
