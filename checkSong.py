@@ -167,7 +167,7 @@ def song_check_loop():
     start_time = time()
     while True:
         write_song_to_file()
-        sleep(2.5 - ((time() - start_time) % 2.5))
+        sleep(2.0 - ((time() - start_time) % 2.0))
 
 
 def main():
