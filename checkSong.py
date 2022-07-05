@@ -63,24 +63,36 @@ def convert_metadata_json(metadata):
             album = line.split('|')[1]
         if 'artist' in line:
             artist = line.split('|')[1]
+    
+    album_title_formatted = format_album_title(album)
+    print(album_title_formatted)
 
     readyData = {
         'coverUrl': cover_url,
         'songTitle': song_title,
         'album': album,
+        'albumFormatted': album_title_formatted,
         'artist': artist
     }
+
+   
 
     return dumps(readyData)
 
 
 # format the album title to give it as a name to the downloaded album cover
-def format_album_title():
+def format_album_title(album=None):
     album_title_formatted = ''
-    with open(current_song_file, 'r') as current:
-        # get album title from current song file and make it lowercase
-        album_title_formatted = load(current)['album'].lower()
 
+    if album is None:
+        with open(current_song_file, 'r') as current:
+            # get album title from current song file
+            album_title_formatted = load(current)['album']
+    else:
+        album_title_formatted = album
+
+    # make it lowercase
+    album_title_formatted = album_title_formatted.lower()
     # remove all characters that ARE NOT letters and numbers
     album_title_formatted = sub('[^ a-zA-Z0-9]', '', album_title_formatted)
     # replace spaces for underscores
