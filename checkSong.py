@@ -45,8 +45,9 @@ def create_files_dirs():
 
 
 def get_metadata():
+    command = join(working_dir, 'spot_metadata')
     metadata = check_output(
-        [join(working_dir, 'spot_metadata')], universal_newlines=True)
+        [command], universal_newlines=True)
     return convert_metadata_json(metadata)
 
 
