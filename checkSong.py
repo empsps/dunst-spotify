@@ -116,7 +116,9 @@ def download_album_cover():
 
     # download the album cover and name it to the formatted album title
     cover_img = join(covers_dir, album_title_formatted) + '.png'
+    
     urlretrieve(cover_url, cover_img)
+
     resized_image = resize(imread(cover_img), dsize=(
         50, 50), interpolation=INTER_AREA)
     imwrite(cover_img, resized_image)
@@ -177,7 +179,7 @@ def check_spotify_running():
     return False
 
 
-def song_check_loop():
+def check_song_loop():
     start_time = time()
     while True:
         sleep(2.0 - ((time() - start_time) % 2.0))
@@ -189,7 +191,7 @@ def song_check_loop():
 
 def main():
     create_files_dirs()
-    song_check_loop()
+    check_song_loop()
 
 
 if __name__ == '__main__':
