@@ -10,8 +10,8 @@ from urllib.request import urlretrieve
 from json import dumps, load, dump, loads
 from cv2 import INTER_AREA, resize, imread, imwrite
 
-working_dir = '/home/sph/Dev/dunspotify'
-cache_dir = '/home/sph/.local/share/dunspotify'
+working_dir = '$HOME/Downloads/dunspotify'
+cache_dir = '$HOME/.cache/dunspotify'
 covers_dir = join(cache_dir, 'covers')
 last_saved_song_file = join(cache_dir, 'lastSavedSong.json')
 current_song_file = join(cache_dir, 'currentSong.json')
